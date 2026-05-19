@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Cita - DentoDulce</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .reserva-container {
+            max-width: 700px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+        }
+
+        .paso {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .paso:last-child {
+            border-bottom: none;
+        }
+
+        .paso-numero {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .paso h3 {
+            display: inline-block;
+            margin: 0;
+        }
+
+        .calendario {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .dia {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .dia:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .dia.seleccionado {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .dia.deshabilitado {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .horas-disponibles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+
+        .hora {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .hora:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .hora.seleccionada {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .resumen-reserva {
+            background: #f0f7ff;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .resumen-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .resumen-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <nav style="background: var(--primary-color); color: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 1.5rem; font-weight: bold;">🦷 DentoDulce</div>
+        <a href="dashboard.html" style="color: white; text-decoration: none;">← Volver</a>
+    </nav>
+
+    <div class="reserva-container">
+        <h1 style="text-align: center; color: var(--primary-color);">📅 Reservar Cita</h1>
+
+        <div id="alertContainer"></div>
+
+        <form id="reservaForm">
+            <!-- Paso 1: Seleccionar Servicio -->
+            <div class="paso">
+                <span class="paso-numero">1</span>
+                <h3>Selecciona el Servicio</h3>
+                <div class="form-group" style="margin-top: 1rem;">
+                    <select id="servicio" name="servicio" required onchange="actualizarPrecio()">
+                        <option value="">-- Selecciona un servicio --</option>
+                    </select>
+                </div>
+                <div id="servicioDetalle" style="margin-top: 1rem; padding: 1rem; background: #f9f9f9; border-radius: 8px; display: none;">
+                    <p><strong>Precio:</strong> <span id="precio">$0.00</span></p>
+                    <p><strong>Duración:</strong> <span id="duracion">30</span> minutos</p>
+                </div>
+            </div>
+
+            <!-- Paso 2: Seleccionar Fecha -->
+            <div class="paso">
+                <span class="paso-numero">2</span>
+                <h3>Elige la Fecha</h3>
+                <div style="margin-top: 1rem;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <button type="button" onclick="mesAnterior()">← Anterior</button>
+                        <div style="flex: 1; text-align: center;"><strong id="mesAnio"></strong></div>
+                        <button type="button" onclick="mesProximo()">Siguiente →</button>
+                    </div>
+                    <div class="calendario" id="calendario"></div>
+                    <input type="hidden" id="fechaSeleccionada" name="fecha">
+                </div>
+            </div>
+
+            <!-- Paso 3: Seleccionar Hora -->
+            <div class="paso">
+                <span class="paso-numero">3</span>
+                <h3>Elige la Hora</h3>
+                <div id="horasContainer" style="margin-top: 1rem; display: none;">
+                    <div class="horas-disponibles" id="horasDisponibles"></div>
+                    <input type="hidden" id="horaSeleccionada" name="hora">
+                </div>
+                <p id="selectFechaFirst" style="color: var(--gray-color);">Por favor, selecciona una fecha primero</p>
+            </div>
+
+            <!-- Paso 4: Resumen -->
+            <div class="paso">
+                <span class="paso-numero">4</span>
+                <h3>Confirma tu Reserva</h3>
+                <div class="resumen-reserva" id="resumenReserva">
+                    <p style="color: var(--gray-color);">Completa los pasos anteriores para ver el resumen</p>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1rem;">
+                Confirmar Reserva
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let token = localStorage.getItem('token');
+        let userData = JSON.parse(localStorage.getItem('userData'));
+        let fechaActual = new Date();
+        let servicioSeleccionado = null;
+        let servicios = [];
+        let horarios = [];
+
+        if (!token) {
+            window.location.href = '../login.html';
+        }
+
+        // Cargar servicios
+        async function cargarServicios() {
+            try {
+                const response = await fetch(`${API_URL}/servicios`);
+                const data = await response.json();
+
+                if (data.success) {
+                    servicios = data.servicios;
+                    const select = document.getElementById('servicio');
+                    select.innerHTML = '<option value="">-- Selecciona un servicio --</option>';
+                    servicios.forEach(s => {
+                        select.innerHTML += `<option value="${s.id}">${s.nombre}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error al cargar servicios', 'error');
+            }
+        }
+
+        // Cargar horarios
+        async function cargarHorarios() {
+            try {
+                const response = await fetch(`${API_URL}/doctora/horarios`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    horarios = data.horarios;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function actualizarPrecio() {
+            const servicioId = document.getElementById('servicio').value;
+            const servicio = servicios.find(s => s.id == servicioId);
+
+            if (servicio) {
+                servicioSeleccionado = servicio;
+                document.getElementById('precio').textContent = `$${servicio.precio.toFixed(2)}`;
+                document.getElementById('duracion').textContent = servicio.duracion_minutos;
+                document.getElementById('servicioDetalle').style.display = 'block';
+            } else {
+                document.getElementById('servicioDetalle').style.display = 'none';
+            }
+
+            actualizarResumen();
+        }
+
+        function dibujarCalendario() {
+            const calendario = document.getElementById('calendario');
+            calendario.innerHTML = '';
+
+            const primerDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), 1);
+            const ultimoDia = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0);
+
+            // Encabezados de días
+            const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sab'];
+            dias.forEach(dia => {
+                const header = document.createElement('div');
+                header.textContent = dia;
+                header.style.fontWeight = 'bold';
+                header.style.textAlign = 'center';
+                header.style.color = 'var(--gray-color)';
+                calendario.appendChild(header);
+            });
+
+            // Días vacíos antes del primer día
+            for (let i = 0; i < primerDia.getDay(); i++) {
+                const vacio = document.createElement('div');
+                calendario.appendChild(vacio);
+            }
+
+            // Días del mes
+            for (let i = 1; i <= ultimoDia.getDate(); i++) {
+                const diaDiv = document.createElement('div');
+                diaDiv.className = 'dia';
+                diaDiv.textContent = i;
+
+                const fecha = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), i);
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+
+                if (fecha < hoy || fecha.getDay() === 0) {
+                    diaDiv.classList.add('deshabilitado');
+                } else {
+                    diaDiv.onclick = () => seleccionarFecha(i);
+                }
+
+                calendario.appendChild(diaDiv);
+            }
+
+            document.getElementById('mesAnio').textContent = 
+                fechaActual.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        }
+
+        function seleccionarFecha(dia) {
+            const fecha = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), dia);
+            document.getElementById('fechaSeleccionada').value = fecha.toISOString().split('T')[0];
+
+            // Mostrar horas disponibles
+            document.getElementById('selectFechaFirst').style.display = 'none';
+            document.getElementById('horasContainer').style.display = 'block';
+
+            // Generar horas
+            const horasDiv = document.getElementById('horasDisponibles');
+            horasDiv.innerHTML = '';
+
+            const horas = ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30', '17:00'];
+            horas.forEach(hora => {
+                const horaDiv = document.createElement('div');
+                horaDiv.className = 'hora';
+                horaDiv.textContent = hora;
+                horaDiv.onclick = () => seleccionarHora(hora);
+                horasDiv.appendChild(horaDiv);
+            });
+
+            dibujarCalendario();
+            document.querySelectorAll('.dia').forEach((el, i) => {
+                if (el.textContent === dia.toString()) {
+                    el.classList.add('seleccionado');
+                }
+            });
+
+            actualizarResumen();
+        }
+
+        function seleccionarHora(hora) {
+            document.getElementById('horaSeleccionada').value = hora;
+
+            document.querySelectorAll('.hora').forEach(el => el.classList.remove('seleccionada'));
+            event.target.classList.add('seleccionada');
+
+            actualizarResumen();
+        }
+
+        function actualizarResumen() {
+            const servicio = document.getElementById('servicio').value;
+            const fecha = document.getElementById('fechaSeleccionada').value;
+            const hora = document.getElementById('horaSeleccionada').value;
+
+            if (servicio && fecha && hora) {
+                const servicioData = servicios.find(s => s.id == servicio);
+                const fechaFormato = new Date(fecha).toLocaleDateString('es-ES');
+
+                document.getElementById('resumenReserva').innerHTML = `
+                    <div class="resumen-item">
+                        <strong>Servicio:</strong>
+                        <span>${servicioData.nombre}</span>
+                    </div>
+                    <div class="resumen-item">
+                        <strong>Fecha:</strong>
+                        <span>${fechaFormato}</span>
+                    </div>
+                    <div class="resumen-item">
+                        <strong>Hora:</strong>
+                        <span>${hora}</span>
+                    </div>
+                    <div class="resumen-item">
+                        <strong>Duración:</strong>
+                        <span>${servicioData.duracion_minutos} minutos</span>
+                    </div>
+                    <div class="resumen-item">
+                        <strong>Costo:</strong>
+                        <span>$${servicioData.precio.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function mesAnterior() {
+            fechaActual.setMonth(fechaActual.getMonth() - 1);
+            dibujarCalendario();
+        }
+
+        function mesProximo() {
+            fechaActual.setMonth(fechaActual.getMonth() + 1);
+            dibujarCalendario();
+        }
+
+        document.getElementById('reservaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const servicio_id = document.getElementById('servicio').value;
+            const fecha = document.getElementById('fechaSeleccionada').value;
+            const hora = document.getElementById('horaSeleccionada').value;
+
+            try {
+                const response = await fetch(`${API_URL}/citas/crear`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        servicio_id,
+                        fecha,
+                        hora
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarAlerta('¡Cita reservada exitosamente!', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'mis-citas.html';
+                    }, 2000);
+                } else {
+                    mostrarAlerta(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error al reservar cita', 'error');
+            }
+        });
+
+        function mostrarAlerta(mensaje, tipo) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${tipo}" style="margin-bottom: 1rem;">
+                    <span>${mensaje}</span>
+                    <button style="background: none; border: none; cursor: pointer; font-size: 1.2rem;" onclick="this.parentElement.remove()">×</button>
+                </div>
+            `;
+        }
+
+        // Inicializar
+        cargarServicios();
+        cargarHorarios();
+        dibujarCalendario();
+    </script>
+</body>
+</html>
