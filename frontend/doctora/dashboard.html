@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Dra. Dulce María</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .dashboard-doctora {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            text-align: center;
+            border-top: 4px solid var(--primary-color);
+        }
+
+        .metric-number {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin: 1rem 0;
+        }
+
+        .metric-label {
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+
+        .table-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-completada {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pendiente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-cancelada {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-doctora {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-doctora {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            td, th {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex; gap: 2rem;">
+        <!-- Sidebar -->
+        <div style="width: 250px; background: var(--primary-color); color: white; padding: 2rem 1rem; min-height: 100vh; position: fixed; left: 0; top: 0;">
+            <div style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem; font-weight: bold;">🦷 DentoDulce</div>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 1rem;"><a href="dashboard.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius); background: rgba(255, 255, 255, 0.2);">📊 Dashboard</a></li>
+                <li style="margin-bottom: 1rem;"><a href="citas.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">📅 Citas Próximas</a></li>
+                <li style="margin-bottom: 1rem;"><a href="servicios.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">🦷 Servicios</a></li>
+                <li style="margin-bottom: 1rem;"><a href="horarios.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">🕐 Horarios</a></li>
+                <li style="margin-bottom: 1rem;"><a href="facturacion.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">💰 Facturación</a></li>
+                <li style="margin-bottom: 1rem;"><a href="#" onclick="logout()" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">🚪 Cerrar Sesión</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div style="margin-left: 250px; flex: 1; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1>Bienvenida, Dra. Dulce María</h1>
+                    <p style="color: var(--gray-color);">Panel de Control del Consultorio</p>
+                </div>
+                <div style="text-align: right;">
+                    <p id="dateDisplay"></p>
+                </div>
+            </div>
+
+            <!-- Métricas -->
+            <div class="dashboard-doctora">
+                <div class="metric-card">
+                    <div class="metric-label">Pacientes Atendidos este Mes</div>
+                    <div class="metric-number" id="pacientesAtendidos">0</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Ingresos Mensuales</div>
+                    <div class="metric-number" id="ingresosMensuales">$0.00</div>
+                </div>
+
+                <div class="metric-card">
+                    <div class="metric-label">Citas Próximas (7 días)</div>
+                    <div class="metric-number" id="citasProximas">0</div>
+                </div>
+            </div>
+
+            <!-- Servicios más solicitados -->
+            <div class="table-container">
+                <h2>🦷 Servicios Más Solicitados (Este Mes)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Servicio</th>
+                            <th>Cantidad</th>
+                            <th>Ingresos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="serviciosTable">
+                        <tr><td colspan="3" style="text-align: center; color: var(--gray-color);">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Citas próximas -->
+            <div class="table-container" style="margin-top: 2rem;">
+                <h2>📅 Citas Próximas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Paciente</th>
+                            <th>Servicio</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="citasTable">
+                        <tr><td colspan="5" style="text-align: center; color: var(--gray-color);">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let token = localStorage.getItem('token');
+        let userData = JSON.parse(localStorage.getItem('userData'));
+
+        // Verificar si es doctora
+        if (!token || userData?.rol !== 'doctora') {
+            window.location.href = '../login.html';
+        }
+
+        // Mostrar fecha
+        document.getElementById('dateDisplay').textContent = new Date().toLocaleDateString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Cargar métricas
+        async function cargarMetricas() {
+            try {
+                const response = await fetch(`${API_URL}/doctora/metricas`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('pacientesAtendidos').textContent = data.metricas.pacientesAtendidosEsMes;
+                    document.getElementById('ingresosMensuales').textContent = `$${parseFloat(data.metricas.ingresosMensuales).toFixed(2)}`;
+
+                    // Servicios más solicitados
+                    const tbody = document.getElementById('serviciosTable');
+                    tbody.innerHTML = '';
+                    data.metricas.serviciosMasSolicitados.forEach(servicio => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${servicio.nombre}</td>
+                                <td>${servicio.total}</td>
+                                <td>$${(servicio.total * 100).toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Cargar citas próximas
+        async function cargarCitas() {
+            try {
+                const response = await fetch(`${API_URL}/doctora/citas?filtro=proximo_mes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('citasTable');
+                    tbody.innerHTML = '';
+
+                    const citasProximas = data.citas.slice(0, 10); // Mostrar primeras 10
+                    document.getElementById('citasProximas').textContent = data.citas.filter(c => {
+                        const fecha = new Date(c.fecha);
+                        const hoy = new Date();
+                        const proximos7 = new Date(hoy.getTime() + 7 * 24 * 60 * 60 * 1000);
+                        return fecha >= hoy && fecha <= proximos7;
+                    }).length;
+
+                    citasProximas.forEach(cita => {
+                        const fecha = new Date(cita.fecha).toLocaleDateString('es-ES');
+                        const estado = cita.estado === 'completada' ? 'Completada' : 
+                                     cita.estado === 'pendiente' ? 'Pendiente' : 'Cancelada';
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${cita.paciente_nombre} ${cita.paciente_apellido}</td>
+                                <td>${cita.servicio_nombre}</td>
+                                <td>${fecha}</td>
+                                <td>${cita.hora}</td>
+                                <td><span class="status-badge status-${cita.estado}">${estado}</span></td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            window.location.href = '../index.html';
+        }
+
+        // Inicializar
+        cargarMetricas();
+        cargarCitas();
+    </script>
+</body>
+</html>
