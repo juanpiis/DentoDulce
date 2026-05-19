@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facturación - Dra. Dulce María</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .facturacion-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-seccion {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-seccion h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-family: inherit;
+        }
+
+        .resumen-facturacion {
+            background: #f0f7ff;
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .resumen-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+
+        .total {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            padding-top: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .tabla-pagos {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .tabla-pagos th {
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .tabla-pagos td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 1024px) {
+            .facturacion-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style="display: flex;">
+        <!-- Sidebar -->
+        <div style="width: 250px; background: var(--primary-color); color: white; padding: 2rem 1rem; min-height: 100vh; position: fixed; left: 0; top: 0;">
+            <div style="text-align: center; margin-bottom: 2rem; font-size: 1.5rem; font-weight: bold;">🦷 DentoDulce</div>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 1rem;"><a href="dashboard.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">📊 Dashboard</a></li>
+                <li style="margin-bottom: 1rem;"><a href="citas.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">📅 Citas Próximas</a></li>
+                <li style="margin-bottom: 1rem;"><a href="servicios.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">🦷 Servicios</a></li>
+                <li style="margin-bottom: 1rem;"><a href="horarios.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">🕐 Horarios</a></li>
+                <li style="margin-bottom: 1rem;"><a href="facturacion.html" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius); background: rgba(255, 255, 255, 0.2);">💰 Facturación</a></li>
+                <li style="margin-bottom: 1rem;"><a href="#" onclick="logout()" style="color: white; text-decoration: none; display: block; padding: 0.75rem; border-radius: var(--border-radius);">🚪 Cerrar Sesión</a></li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div style="margin-left: 250px; flex: 1; padding: 2rem;">
+            <h1>💰 Facturación y Pagos</h1>
+            <p style="color: var(--gray-color);">Registra los costos de tratamientos y visualiza los ingresos</p>
+
+            <div id="alertContainer"></div>
+
+            <div class="facturacion-container">
+                <!-- Registrar Pago -->
+                <div class="card-seccion">
+                    <h3>📝 Registrar Pago de Tratamiento</h3>
+                    <form id="formPago">
+                        <div class="form-group">
+                            <label for="paciente">Paciente</label>
+                            <select id="paciente" name="paciente" required>
+                                <option value="">-- Selecciona un paciente --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tratamiento">Tratamiento/Servicio</label>
+                            <input type="text" id="tratamiento" name="tratamiento" placeholder="Ej: Limpieza dental" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="monto">Monto ($)</label>
+                            <input type="number" id="monto" name="monto" placeholder="0.00" step="0.01" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="estado">Estado del Pago</label>
+                            <select id="estado" name="estado" required>
+                                <option value="pagado">Pagado</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="parcial">Pago Parcial</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Registrar Pago
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Resumen de Ingresos -->
+                <div class="card-seccion">
+                    <h3>📊 Resumen de Ingresos</h3>
+                    <div class="resumen-facturacion">
+                        <div class="resumen-item">
+                            <span>Ingresos Este Mes:</span>
+                            <strong id="ingresosMes">$0.00</strong>
+                        </div>
+                        <div class="resumen-item">
+                            <span>Ingresos Este Año:</span>
+                            <strong id="ingresosAnio">$0.00</strong>
+                        </div>
+                        <div class="resumen-item">
+                            <span>Pagos Pendientes:</span>
+                            <strong id="pagosPendientes">$0.00</strong>
+                        </div>
+                        <div class="total">
+                            Total: <span id="ingresosTotales">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Pagos Registrados -->
+            <div style="background: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--shadow-sm);">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">📋 Pagos Registrados</h3>
+                <div style="overflow-x: auto;">
+                    <table class="tabla-pagos">
+                        <thead>
+                            <tr>
+                                <th>Paciente</th>
+                                <th>Tratamiento</th>
+                                <th>Monto</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaPagos">
+                            <tr><td colspan="5" style="text-align: center; color: var(--gray-color);">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let token = localStorage.getItem('token');
+        let userData = JSON.parse(localStorage.getItem('userData'));
+
+        if (!token || userData?.rol !== 'doctora') {
+            window.location.href = '../login.html';
+        }
+
+        // Cargar pacientes
+        async function cargarPacientes() {
+            try {
+                const response = await fetch(`${API_URL}/pacientes`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const select = document.getElementById('paciente');
+                    data.pacientes.forEach(p => {
+                        select.innerHTML += `<option value="${p.id}">${p.usuario_nombre} ${p.usuario_apellido}</option>`;
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Cargar ingresos
+        async function cargarIngresos() {
+            try {
+                const response = await fetch(`${API_URL}/facturacion/ingresos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('ingresosMes').textContent = `$${data.ingresosMes.toFixed(2)}`;
+                    document.getElementById('ingresosAnio').textContent = `$${data.ingresosAnio.toFixed(2)}`;
+                    document.getElementById('pagosPendientes').textContent = `$${data.pagosPendientes.toFixed(2)}`;
+                    document.getElementById('ingresosTotales').textContent = `$${(data.ingresosMes + data.ingresosAnio).toFixed(2)}`;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Cargar pagos registrados
+        async function cargarPagos() {
+            try {
+                const response = await fetch(`${API_URL}/facturacion/pagos`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const tbody = document.getElementById('tablaPagos');
+                    tbody.innerHTML = '';
+                    
+                    data.pagos.forEach(pago => {
+                        const fecha = new Date(pago.fecha).toLocaleDateString('es-ES');
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${pago.paciente_nombre}</td>
+                                <td>${pago.tratamiento}</td>
+                                <td>$${pago.monto.toFixed(2)}</td>
+                                <td><span class="estado-badge estado-${pago.estado}">${pago.estado}</span></td>
+                                <td>${fecha}</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        document.getElementById('formPago').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const paciente_id = document.getElementById('paciente').value;
+            const tratamiento = document.getElementById('tratamiento').value;
+            const monto = document.getElementById('monto').value;
+            const estado = document.getElementById('estado').value;
+
+            try {
+                const response = await fetch(`${API_URL}/facturacion/registrar-pago`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        paciente_id,
+                        tratamiento,
+                        monto,
+                        estado
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarAlerta('Pago registrado exitosamente', 'success');
+                    document.getElementById('formPago').reset();
+                    cargarPagos();
+                    cargarIngresos();
+                } else {
+                    mostrarAlerta(data.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarAlerta('Error al registrar pago', 'error');
+            }
+        });
+
+        function mostrarAlerta(mensaje, tipo) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${tipo}" style="margin-bottom: 1rem;">
+                    <span>${mensaje}</span>
+                    <button style="background: none; border: none; cursor: pointer; font-size: 1.2rem;" onclick="this.parentElement.remove()">×</button>
+                </div>
+            `;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userData');
+            window.location.href = '../index.html';
+        }
+
+        // Inicializar
+        cargarPacientes();
+        cargarIngresos();
+        cargarPagos();
+    </script>
+</body>
+</html>
